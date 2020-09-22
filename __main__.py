@@ -150,7 +150,10 @@ for abstract_req in collection_requirements:
     print(f'\t* {abstract_req.fqcn}\t"{abstract_req.ver}"')
 print()
 
-context.CLIARGS = {'type': 'collection'}  # patch a value populated by the CLI
+context.CLIARGS = {  # patch a value normally populated by the CLI
+    'ignore_certs': False,
+    'type': 'collection',
+}
 resolver = Resolver(
     AnsibleGalaxyProvider(
         api=GalaxyAPI(Galaxy(), 'default_galaxy', C.GALAXY_SERVER),
