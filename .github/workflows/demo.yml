@@ -1,0 +1,32 @@
+name: Ansible Collections dependency discovery with resolvelib
+
+on:
+  push:
+  pull_request:
+  schedule:
+  # https://crontab.guru/#23_*/4_*_*_*
+  - cron: 23 */4 * * *  # At minute 23 past every 4th hour.
+
+jobs:
+  build-dumb-pypi:
+    name: resolvelib♡collections
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out own src from Git
+      uses: actions/checkout@v2
+    - name: Switch to Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install Ansible and resolvelib dists from PyPI
+      run: >-
+        python -m
+        pip install
+        --user
+        -r requirements.in
+        -c requirements.txt
+    - name: >-
+        Run the dependency resolution for
+        amazon.aws Ansible Collection
+      run: python .
