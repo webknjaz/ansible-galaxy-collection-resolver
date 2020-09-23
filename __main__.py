@@ -174,3 +174,11 @@ print('Resolved concrete transitive dependencies:')
 for coll_name, concrete_pin in concrete_requirements.mapping.items():
     print(f'\t* {coll_name}\t"{concrete_pin.ver}"')
 print()
+
+dependency_tree = concrete_requirements.graph
+print()
+print('Dependency tree:')
+#print(f'{dependency_tree=}')
+for dep_origin, dep in dependency_tree.iter_edges():
+    print(f'\t* {dep_origin}\t→\t{dep}')
+print()
