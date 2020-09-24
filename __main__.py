@@ -1,10 +1,12 @@
 from collections import namedtuple
 from operator import attrgetter
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import ansible.constants as C
 from ansible import context
 from ansible.galaxy import Galaxy
-from ansible.galaxy.api import GalaxyAPI
+from ansible.galaxy.api import CollectionVersionMetadata, GalaxyAPI
 from ansible.galaxy.collection import CollectionRequirement
 
 from resolvelib import AbstractProvider, BaseReporter, Resolver
@@ -143,6 +145,8 @@ class AnsibleGalaxyProvider(AbstractProvider):
 
 
 collection_requirements = [Requirement('amazon.aws', '*', None, None)]
+#collection_requirements = [Requirement('amazon.aws', '1.2.0', None, None)]
+#collection_requirements = [Requirement('amazon.aws', '1.2.1-dev3', None, None)]
 print()
 print('Given collection requirements:')
 #print(f'{collection_requirements=}')
@@ -154,10 +158,9 @@ context.CLIARGS = {  # patch a value normally populated by the CLI
     'ignore_certs': False,
     'type': 'collection',
 }
+galaxy_api = GalaxyAPI(Galaxy(), 'default_galaxy', C.GALAXY_SERVER)
 resolver = Resolver(
-    AnsibleGalaxyProvider(
-        api=GalaxyAPI(Galaxy(), 'default_galaxy', C.GALAXY_SERVER),
-    ),
+    AnsibleGalaxyProvider(api=galaxy_api),
     BaseReporter(),
 )
 print()
@@ -181,4 +184,36 @@ print('Dependency tree:')
 #print(f'{dependency_tree=}')
 for dep_origin, dep in dependency_tree.iter_edges():
     print(f'\t* {dep_origin}\t→\t{dep}')
+print()
+
+
+print()
+target_path = Path('./ans_coll/').resolve().absolute()
+print('Attempting to install the resolved dependencies into {target_path!s}...')
+print()
+with TemporaryDirectory() as tmp_dir:
+    for concrete_coll_pin in concrete_requirements.mapping.values():
+        print(f'Installing {concrete_coll_pin.fqcn}...')
+        coll_ns, coll_name = concrete_coll_pin.fqcn.split('.')
+        coll_meta = galaxy_api.get_collection_version_metadata(
+            namespace=coll_ns,
+            name=coll_name,
+            version=concrete_coll_pin.ver,
+        )
+        coll_meta.dependencies = {}  # we shouldn't care about deps here
+        CollectionRequirement(
+            namespace=coll_ns,
+            name=coll_name,
+            b_path=None,
+            api=galaxy_api,
+            versions=[concrete_coll_pin.ver],
+            requirement=concrete_coll_pin.ver,
+            force=False,
+            allow_pre_releases=True,  # amazon.aws only has pre-releases
+            metadata=coll_meta,
+        ).install(
+            path=target_path,
+            b_temp_path=tmp_dir.encode(),
+        )
+        print(f'`{concrete_coll_pin.fqcn}` installed successfully.')
 print()
