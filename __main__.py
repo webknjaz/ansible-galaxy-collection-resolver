@@ -12,7 +12,7 @@ from ansible.galaxy.collection import CollectionRequirement
 from resolvelib import AbstractProvider, BaseReporter, Resolver
 
 
-IS_BELOW_ANSIBLE_210 = tuple(__version__.split()[:2]) < (2, 10)
+IS_BELOW_ANSIBLE_210 = tuple(map(int, __version__.split()[:2])) < (2, 10)
 
 
 # NOTE: "src" and "type" fields are reserved for future use.
