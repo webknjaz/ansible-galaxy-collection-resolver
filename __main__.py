@@ -4,12 +4,15 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import ansible.constants as C
-from ansible import context
+from ansible import context, __version__
 from ansible.galaxy import Galaxy
 from ansible.galaxy.api import CollectionVersionMetadata, GalaxyAPI
 from ansible.galaxy.collection import CollectionRequirement
 
 from resolvelib import AbstractProvider, BaseReporter, Resolver
+
+
+IS_BELOW_ANSIBLE_210 = __version__.split()[:2] < (2, 10)
 
 
 # NOTE: "src" and "type" fields are reserved for future use.
@@ -191,6 +194,9 @@ print()
 target_path = Path('./ans_coll/').resolve().absolute()
 print('Attempting to install the resolved dependencies into {target_path!s}...')
 print()
+extra_coll_req_args = {} if IS_BELOW_ANSIBLE_210 else {
+    'allow_pre_releases': True,  # amazon.aws has pre-releases
+}
 with TemporaryDirectory() as tmp_dir:
     for concrete_coll_pin in concrete_requirements.mapping.values():
         print(f'Installing {concrete_coll_pin.fqcn}...')
@@ -209,8 +215,8 @@ with TemporaryDirectory() as tmp_dir:
             versions=[concrete_coll_pin.ver],
             requirement=concrete_coll_pin.ver,
             force=False,
-            allow_pre_releases=True,  # amazon.aws only has pre-releases
             metadata=coll_meta,
+            **extra_coll_req_args,
         ).install(
             path=target_path,
             b_temp_path=tmp_dir.encode(),
