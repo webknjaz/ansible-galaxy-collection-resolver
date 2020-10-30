@@ -192,7 +192,7 @@ print()
 
 print()
 target_path = Path('./ans_coll/').resolve().absolute()
-print('Attempting to install the resolved dependencies into {target_path!s}...')
+print(f'Attempting to install the resolved dependencies into {target_path!s}...')
 print()
 extra_coll_req_args = {} if IS_BELOW_ANSIBLE_210 else {
     'allow_pre_releases': True,  # amazon.aws has pre-releases
