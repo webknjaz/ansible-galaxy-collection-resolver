@@ -15,10 +15,10 @@ jobs:
     steps:
     - name: Check out own src from Git
       uses: actions/checkout@v2
-    - name: Switch to Python 3.8
+    - name: Switch to Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install Ansible and resolvelib dists from PyPI
       run: >-
         python -m
