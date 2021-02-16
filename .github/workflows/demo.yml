@@ -20,12 +20,13 @@ jobs:
       with:
         python-version: 3.9
     - name: Install Ansible and resolvelib dists from PyPI
+      # NOTE: Not using `-c` because of a bug in new pip
+      # Ref: https://github.com/pypa/pip/issues/9243
       run: >-
         python -m
         pip install
         --user
-        -r requirements.in
-        -c requirements.txt
+        -r requirements.txt
     - name: >-
         Run the dependency resolution for
         amazon.aws Ansible Collection
